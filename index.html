@@ -354,11 +354,12 @@
                 price: 48000,
                 priceShort: "48k",
                 badge: "Best Seller",
+                soldOut:true, // <-- Tambahkan baris ini jika produk habis (ubah ke false jika ready lagi)
                 description: "Bahan viscose lembut, adem, motif elegan mudah dibentuk.",
                 // TODO: Ganti foto produk 1 (Phasmina Visco motif - 48k) di sini:
                 imageUrl: "visco.JPG",
                 placeholderLabel: "Foto Produk 1 (Siap Diedit)",
-                colorHint: "Contoh: Motif Floral Cream / Dusty Pink"
+                colorHint: "Contoh: Motif Floral Cream / Dusty Pink",
             },
             {
                 id: 2,
@@ -502,6 +503,7 @@
 
             productsData.forEach(product => {
                 const activeImage = customPhotos[product.id] || product.imageUrl;
+                const isSoldOut = Boolean(product.soldOut);
 
                 // Area Foto / Placeholder Estetis 4:5
                 let mediaHTML = "";
@@ -551,6 +553,7 @@
                         <div class="relative aspect-[4/5] w-full overflow-hidden bg-cream-100">
                             ${mediaHTML}
                             ${editOverlayHTML}
+                            ${isSoldOut ? `<div class="absolute inset-0 bg-black/50 flex items-center justify-center z-10 pointer-events-none"><span class="bg-red-600 text-white text-xs font-bold px-3.5 py-1.5 rounded-full tracking-wider uppercase shadow">Sold Out</span></div>` : ''}
                             <span class="absolute top-3 left-3 z-10 bg-white/95 backdrop-blur-xs text-charcoal-900 text-[11px] font-bold px-2.5 py-1 rounded-full shadow-2xs">
                                 ${product.badge}
                             </span>
@@ -587,16 +590,16 @@
 
                     <!-- Tombol Aksi Produk -->
                     <div class="p-4 sm:p-5 pt-0 space-y-2">
-                        <button onclick="addToCart(${product.id})" 
-                            class="w-full py-2.5 px-4 rounded-xl bg-charcoal-900 hover:bg-charcoal-800 text-white text-xs font-semibold flex items-center justify-center gap-2 transition">
-                            <i class="fa-solid fa-cart-plus"></i>
-                            <span>+ Keranjang</span>
-                        </button>
-                        <button onclick="quickOrderWA(${product.id})" 
-                            class="w-full py-2.5 px-4 rounded-xl bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white border border-emerald-200 hover:border-emerald-600 text-xs font-semibold flex items-center justify-center gap-1.5 transition">
-                            <i class="fa-brands fa-whatsapp text-sm"></i>
-                            <span>Pesan Cepat via WA</span>
-                        </button>
+                        <button onclick="addToCart(${product.id})" ${isSoldOut ? 'disabled' : ''}
+    class="w-full py-2.5 px-4 rounded-xl bg-charcoal text-white text-xs font-semibold flex items-center justify-center gap-2 transition ${isSoldOut ? 'opacity-50 cursor-not-allowed' : 'hover:bg-stone-800'}">
+    <i class="fa-solid fa-cart-plus"></i>
+    <span>${isSoldOut ? 'Sold Out' : '+ Keranjang'}</span>
+</button>
+<button onclick="quickOrderWA(${product.id})" ${isSoldOut ? 'disabled' : ''}
+    class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 text-white text-xs font-semibold flex items-center justify-center gap-2 transition ${isSoldOut ? 'opacity-50 cursor-not-allowed' : 'hover:bg-emerald-700'}">
+    <i class="fa-brands fa-whatsapp text-sm"></i>
+    <span>${isSoldOut ? 'Sold Out' : 'Pesan Cepat via WA'}</span>
+</button>
                     </div>
                 `;
                 grid.appendChild(card);
@@ -616,6 +619,10 @@
         // Tambah ke Keranjang
         function addToCart(productId) {
             const product = productsData.find(p => p.id === productId);
+            if (!product || product.soldOut) {
+            showToast("Maaf, produk ini sedang Sold Out.");
+            return;
+        }
             const qtyInput = document.getElementById(`qty-${productId}`);
             const noteInput = document.getElementById(`note-${productId}`);
 
